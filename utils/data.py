@@ -49,7 +49,7 @@ class ImageHandler:
                                  [[norm_ymin, norm_xmin, norm_ymax, norm_xmax]],
                                  [0],
                                  size,
-                                 method='bilinear')
+                                 method='bilinear')[0]
 
 class CSVHandler:
     def __init__(self, csv_path):
