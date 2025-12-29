@@ -94,6 +94,17 @@ class CNNModel:
         plt.savefig(os.path.join(folder_path, 'conf_'+self.model_name+'.pdf'))
         #plt.show()
 
+    def save_checkpoint(self):
+        folder_path = os.path.dirname(os.path.abspath(__file__))
+        folder_path = os.path.join(folder_path, '..', 'models', self.model_name)
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
+
+        print("Saving model checkpoint...")
+        self.model.save(os.path.join(folder_path, 'model_'+self.model_name+'.keras'))
+
+        
+
 
 
 
