@@ -1,6 +1,13 @@
+import os
+
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import models, layers
-from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score, roc_auc_score, roc_curve
+from sklearn.metrics import (accuracy_score,
+                             confusion_matrix, precision_score,
+                             recall_score, f1_score,
+                             roc_auc_score, roc_curve)
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 class CNNModel:
     def __init__(self, input_shape, output_dim, model_name='SoccerRobotClassifier'):
@@ -9,7 +16,7 @@ class CNNModel:
         """
         self.model_name = model_name
         self.input_shape = input_shape
-        self.output_dim = output_dim # should be 4 for ML HW2
+        self.output_dim = output_dim # should be 5 for ML HW2
 
         self.model = None
         self.history = None
@@ -58,6 +65,35 @@ class CNNModel:
 
         # prediction
         y_pred = self.model.predict(X_test)
+
+        # evaluation metrics
+        accuracy = accuracy_score(Y_test, y_pred)
+        precision = precision_score(Y_test, y_pred, average='macro') # precision of a positive prediction
+        recall = recall_score(Y_test, y_pred, average='macro') # precision in classifiing correctly positives
+        f1 = f1_score(Y_test, y_pred, average='macro')
+        roc_auc = roc_auc_score(Y_test, y_pred)
+        roc_curv = roc_curve(Y_test, y_pred)
+
+        self.save_confusion_matrix(Y_test, y_pred)
+
+        return accuracy, precision, recall, f1, roc_auc, roc_curv
+
+    def save_confusion_matrix(self, Y_test, y_pred):
+        cm = confusion_matrix(Y_test, y_pred)
+        plt.figure(figsize=(10, 4))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+        plt.xlabel('Predicted')
+        plt.ylabel('Actual')
+        plt.title('Confusion Matrix')
+
+        folder_path = os.path.dirname(os.path.abspath(__file__))
+        folder_path = os.path.join(folder_path, '..', 'models', self.model_name)
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
+
+        plt.savefig(os.path.join(folder_path, 'conf_'+self.model_name+'.pdf'))
+        #plt.show()
+
 
 
 
