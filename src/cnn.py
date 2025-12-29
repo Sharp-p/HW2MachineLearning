@@ -103,8 +103,14 @@ class CNNModel:
         print("Saving model checkpoint...")
         self.model.save(os.path.join(folder_path, 'model_'+self.model_name+'.keras'))
 
-        
+    def load_checkpoint(self):
+        folder_path = os.path.dirname(os.path.abspath(__file__))
+        folder_path = os.path.join(folder_path, '..', 'models', self.model_name)
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
 
+        print("Loading model checkpoint...")
+        self.model.load(os.path.join(folder_path, 'model_'+self.model_name+'.keras'))
 
 
 
