@@ -71,12 +71,10 @@ class CNNModel:
         precision = precision_score(Y_test, y_pred, average='macro') # precision of a positive prediction
         recall = recall_score(Y_test, y_pred, average='macro') # precision in classifiing correctly positives
         f1 = f1_score(Y_test, y_pred, average='macro')
-        roc_auc = roc_auc_score(Y_test, y_pred)
-        roc_curv = roc_curve(Y_test, y_pred)
 
         self.save_confusion_matrix(Y_test, y_pred)
 
-        return accuracy, precision, recall, f1, roc_auc, roc_curv
+        return accuracy, precision, recall, f1
 
     def save_confusion_matrix(self, Y_test, y_pred):
         cm = confusion_matrix(Y_test, y_pred)
@@ -84,7 +82,7 @@ class CNNModel:
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
         plt.xlabel('Predicted')
         plt.ylabel('Actual')
-        plt.title('Confusion Matrix')
+        plt.title(f'Confusion Matrix {self.model_name}')
 
         folder_path = os.path.dirname(os.path.abspath(__file__))
         folder_path = os.path.join(folder_path, '..', 'models', self.model_name)
