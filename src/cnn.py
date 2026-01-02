@@ -4,8 +4,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import models, layers
 from sklearn.metrics import (accuracy_score,
                              confusion_matrix, precision_score,
-                             recall_score, f1_score,
-                             roc_auc_score, roc_curve)
+                             recall_score, f1_score)
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -69,12 +68,13 @@ class CNNModel:
         # evaluation metrics
         accuracy = accuracy_score(Y_test, y_pred)
         precision = precision_score(Y_test, y_pred, average='macro') # precision of a positive prediction
-        recall = recall_score(Y_test, y_pred, average='macro') # precision in classifiing correctly positives
+        recall = recall_score(Y_test, y_pred, average='macro') # precision in classifying correctly positives
         f1 = f1_score(Y_test, y_pred, average='macro')
 
-        self.save_confusion_matrix(Y_test, y_pred)
+        # self.save_confusion_matrix(Y_test, y_pred)
+        cm = confusion_matrix(Y_test, y_pred)
 
-        return accuracy, precision, recall, f1
+        return accuracy, precision, recall, f1, cm
 
     def save_confusion_matrix(self, Y_test, y_pred):
         cm = confusion_matrix(Y_test, y_pred)
