@@ -1,7 +1,7 @@
 import os
 
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras import models, layers
+from tensorflow.keras import models, layers, utils
 from sklearn.metrics import (accuracy_score,
                              confusion_matrix, precision_score,
                              recall_score, f1_score)
@@ -22,35 +22,73 @@ class CNNModel:
         self.is_trained = False
 
 
-    def build_model(self, learning_rate=0.001, kernel_size=(3, 3), pool_size=(3, 3), kernel_depth=32):
+    def build_model(self, learning_rate=0.001, kernel_size=(3, 3), pool_size=(3, 3), kernel_depth=32,
+                    normalize=True, dropout=True):
         self.model = models.Sequential()
+
+        if normalize:
+            # normalise the RGB images to be in [0,1] range (NN prefer small numbers)
+            self.model.add(layers.Rescaling(1./255, input_shape=self.input_shape))
+            self.model.add(layers.Conv2D(kernel_depth, kernel_size, activation='relu'))
+        else:
+            self.model.add(layers.Conv2D(kernel_depth, kernel_size, activation='relu', input_shape=self.input_shape))
         # filter=32 i.e. the number of kernels applied in each convolutional layer
         # input shape, we will experiment with size from 64x64 to 512x512 pixels
         # (from 4x4 to 56x56 with 3x3 pool and kernel size)
-        self.model.add(layers.Conv2D(kernel_depth, kernel_size, activation='relu', input_shape=self.input_shape))
+
         self.model.add(layers.MaxPooling2D(pool_size=pool_size))
         self.model.add(layers.Conv2D(kernel_depth, kernel_size, activation='relu'))
         self.model.add(layers.MaxPooling2D(pool_size=pool_size))
         self.model.add(layers.Conv2D(kernel_depth, kernel_size, activation='relu'))
 
         self.model.add(layers.Flatten())
+        if dropout: self.model.add(layers.Dropout(0.5))
         self.model.add(layers.Dense(64, activation='relu'))
+        if dropout: self.model.add(layers.Dropout(0.2))
         self.model.add(layers.Dense(32, activation='relu'))
+        if dropout: self.model.add(layers.Dropout(0.1))
         self.model.add(layers.Dense(16, activation='relu'))
         self.model.add(layers.Dense(self.output_dim, activation='softmax'))
 
         self.model.compile(optimizer=Adam(learning_rate=learning_rate), loss='categorical_crossentropy', metrics=['accuracy'])
 
-    def train(self, X_train, Y_train, epochs=50, batch_size=32, val_split=0.2, callbacks=None):
+    def train(self, dataset_path, size, epochs=50, batch_size=32, val_split=0.2, callbacks=None) -> None:
+        """
+        Trains the model.
+        :param dataset_path: Path to dataset of images divided in folders for each class. The images are expected to be in RGB format.
+        :param size: Size of the images in the dataset.
+        :param epochs: Number of epochs to train the model.
+        :param batch_size: Batch size.
+        :param val_split: Validation split.
+        :param callbacks: List of callback functions.
+        :return: None.
+        """
         if self.model is None:
             self.build_model()
 
+        if not os.path.exists(dataset_path):
+            raise FileNotFoundError('Dataset not found at {}'.format(dataset_path))
+
+        # generating training and validation dataset
+        train_ds = utils.image_dataset_from_directory(dataset_path,
+                                                      validation_split=val_split,
+                                                      subset="training",
+                                                      seed=123,
+                                                      image_size=size,
+                                                      batch_size=batch_size)
+        valid_ds = utils.image_dataset_from_directory(dataset_path,
+                                                      validation_split=val_split,
+                                                      subset="validation",
+                                                      seed=123,
+                                                      image_size=size,
+                                                      batch_size=batch_size)
+
         print("Training CNN for maximum", epochs, " epochs...")
         self.history = self.model.fit(
-            X_train, Y_train,
+            train_ds,
+            validation_data=valid_ds,
             epochs=epochs,
             batch_size=batch_size,
-            val_split=val_split,
             verbose=0,
             callbacks=callbacks
         )
