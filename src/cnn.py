@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 class CNNModel:
-    def __init__(self, input_shape, output_dim, model_name='SoccerRobotClassifier'):
+    def __init__(self, input_shape, output_dim, model_name='FootballRobotClassifier'):
         """
         Constructor
         """
@@ -23,7 +23,7 @@ class CNNModel:
 
 
     def build_model(self, learning_rate=0.001, kernel_size=(3, 3), pool_size=(3, 3), kernel_depth=32,
-                    normalize=True, dropout=True):
+                    dropout_val=0.1, normalize=True, dropout=True):
         self.model = models.Sequential()
 
         if normalize:
@@ -42,11 +42,11 @@ class CNNModel:
         self.model.add(layers.Conv2D(kernel_depth, kernel_size, activation='relu'))
 
         self.model.add(layers.Flatten())
-        if dropout: self.model.add(layers.Dropout(0.5))
+        if dropout: self.model.add(layers.Dropout(dropout_val))
         self.model.add(layers.Dense(64, activation='relu'))
-        if dropout: self.model.add(layers.Dropout(0.2))
+        if dropout: self.model.add(layers.Dropout(dropout_val/2))
         self.model.add(layers.Dense(32, activation='relu'))
-        if dropout: self.model.add(layers.Dropout(0.1))
+        if dropout: self.model.add(layers.Dropout(dropout_val/4))
         self.model.add(layers.Dense(16, activation='relu'))
         self.model.add(layers.Dense(self.output_dim, activation='softmax'))
 
